@@ -30,12 +30,13 @@ export function useLiveQuery<T>(
       setLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [queryFn, ...dependencies]);
+  }, []);
 
   // Initial query
   useEffect(() => {
     executeQuery();
-  }, [executeQuery]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [...dependencies]);
 
   // Listen for database changes
   useEffect(() => {
