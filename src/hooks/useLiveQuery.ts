@@ -6,7 +6,7 @@ import { dbEvents } from '../lib/db';
  */
 export function useLiveQuery<T>(
   queryFn: () => Promise<T>,
-  dependencies: any[] = [],
+  dependencies: unknown[] = [],
   eventName?: string
 ): {
   data: T | null;
@@ -29,7 +29,8 @@ export function useLiveQuery<T>(
     } finally {
       setLoading(false);
     }
-  }, dependencies);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [queryFn, ...dependencies]);
 
   // Initial query
   useEffect(() => {
@@ -46,17 +47,6 @@ export function useLiveQuery<T>(
       dbEvents.on(eventName, handleChange);
       return () => dbEvents.off(eventName, handleChange);
     }
-  }, [eventName, executeQuery]);
-
-  // Fallback polling for browsers that don't support custom events
-  useEffect(() => {
-    if (!eventName) return;
-    
-    const intervalId = setInterval(() => {
-      executeQuery();
-    }, 5000); // Poll every 5 seconds
-
-    return () => clearInterval(intervalId);
   }, [eventName, executeQuery]);
 
   return {

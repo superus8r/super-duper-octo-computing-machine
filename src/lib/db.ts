@@ -29,7 +29,7 @@ interface ShoppingListDB extends DBSchema {
 
 // Event emitter for database changes
 class DatabaseEventEmitter extends EventTarget {
-  emit(event: string, data?: any) {
+  emit(event: string, data?: unknown) {
     this.dispatchEvent(new CustomEvent(event, { detail: data }));
   }
 
@@ -51,7 +51,7 @@ let dbInstance: IDBPDatabase<ShoppingListDB> | null = null;
 interface OfflineOperation {
   id: string;
   operation: string;
-  data: any;
+  data: unknown;
   timestamp: Date;
 }
 
@@ -335,7 +335,7 @@ export async function updateSettings(settings: ProfileSettings): Promise<void> {
 }
 
 // Offline queue operations
-async function queueOfflineOperation(operation: string, data: any): Promise<void> {
+async function queueOfflineOperation(operation: string, data: unknown): Promise<void> {
   const op: OfflineOperation = {
     id: uuid(),
     operation,
@@ -377,23 +377,31 @@ export async function processOfflineQueue(): Promise<void> {
     try {
       switch (op.operation) {
         case 'createList':
-          await createList(op.data);
+          await createList(op.data as Omit<List, 'id' | 'createdAt' | 'updatedAt'>);
           break;
-        case 'updateList':
-          await updateList(op.data.id, op.data.updates);
+        case 'updateList': {
+          const data = op.data as { id: string; updates: Partial<Omit<List, 'id' | 'createdAt'>> };
+          await updateList(data.id, data.updates);
           break;
-        case 'deleteList':
-          await deleteList(op.data.id);
+        }
+        case 'deleteList': {
+          const data = op.data as { id: string };
+          await deleteList(data.id);
           break;
+        }
         case 'createItem':
-          await createItem(op.data);
+          await createItem(op.data as Omit<Item, 'id'>);
           break;
-        case 'updateItem':
-          await updateItem(op.data.id, op.data.updates);
+        case 'updateItem': {
+          const data = op.data as { id: string; updates: Partial<Omit<Item, 'id'>> };
+          await updateItem(data.id, data.updates);
           break;
-        case 'deleteItem':
-          await deleteItem(op.data.id);
+        }
+        case 'deleteItem': {
+          const data = op.data as { id: string };
+          await deleteItem(data.id);
           break;
+        }
       }
     } catch (error) {
       console.error(`Error processing offline operation ${op.operation}:`, error);

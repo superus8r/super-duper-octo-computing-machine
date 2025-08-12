@@ -29,11 +29,12 @@ export function NewListPage() {
       });
       
       navigate(`/list/${newList.id}`);
-    } catch (error: any) {
-      if (error.errors) {
+    } catch (error: unknown) {
+      if (error instanceof Error && 'errors' in error) {
+        const zodError = error as { errors: Array<{ path?: string[]; message: string }> };
         const fieldErrors: Record<string, string> = {};
-        error.errors.forEach((err: any) => {
-          if (err.path) {
+        zodError.errors.forEach((err) => {
+          if (err.path && err.path[0]) {
             fieldErrors[err.path[0]] = err.message;
           }
         });
