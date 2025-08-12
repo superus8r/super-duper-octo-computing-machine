@@ -243,6 +243,38 @@
   color: var(--primary);
 }
 
+.item-name-section {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.item-category {
+  background: var(--bg-muted);
+  color: var(--fg-muted);
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+}
+
+.item-notes {
+  font-size: 0.8125rem;
+  color: var(--fg-muted);
+  margin-top: 0.375rem;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+.item-card.purchased .item-category {
+  opacity: 0.6;
+}
+
+.item-card.purchased .item-notes {
+  opacity: 0.5;
+}
+
 .item-actions {
   display: flex;
   gap: 0.5rem;

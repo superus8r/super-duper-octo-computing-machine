@@ -1,10 +1,10 @@
 import { openDB } from 'idb';
 import type { DBSchema, IDBPDatabase } from 'idb';
-import type { List, Item, ProductStat, ProfileSettings } from './types';
+import type { List, Item, ProductStat, ProfileSettings, Budget, ShoppingAnalytics } from './types';
 import { uuid } from './uuid';
 
 // Database schema version
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const DB_NAME = 'shopping-list-db';
 
 // Database schema interface
@@ -20,6 +20,10 @@ interface ShoppingListDB extends DBSchema {
   productStats: {
     key: string;
     value: ProductStat;
+  };
+  budgets: {
+    key: string;
+    value: Budget;
   };
   settings: {
     key: string;
@@ -68,18 +72,31 @@ export async function initDatabase(): Promise<IDBPDatabase<ShoppingListDB>> {
 
   try {
     dbInstance = await openDB<ShoppingListDB>(DB_NAME, DB_VERSION, {
-      upgrade(db) {
-        // Lists store
-        db.createObjectStore('lists', { keyPath: 'id' });
+      upgrade(db, oldVersion, newVersion) {
+        console.log(`Upgrading database from version ${oldVersion} to ${newVersion}`);
+        
+        // Version 1 - Initial schema
+        if (oldVersion < 1) {
+          // Lists store
+          db.createObjectStore('lists', { keyPath: 'id' });
 
-        // Items store
-        db.createObjectStore('items', { keyPath: 'id' });
+          // Items store
+          db.createObjectStore('items', { keyPath: 'id' });
 
-        // Product stats store
-        db.createObjectStore('productStats', { keyPath: 'name' });
+          // Product stats store
+          db.createObjectStore('productStats', { keyPath: 'name' });
 
-        // Settings store
-        db.createObjectStore('settings', { keyPath: 'id' });
+          // Settings store
+          db.createObjectStore('settings', { keyPath: 'id' });
+        }
+        
+        // Version 2 - Add budgets and enhanced analytics
+        if (oldVersion < 2) {
+          // Budgets store
+          db.createObjectStore('budgets', { keyPath: 'id' });
+          
+          console.log('Database upgraded to version 2');
+        }
       },
     });
 
@@ -214,7 +231,7 @@ export async function createItem(itemData: Omit<Item, 'id'>): Promise<Item> {
   try {
     const db = await getDB();
     await db.put('items', item);
-    await updateProductStats(item.name, item.price);
+    await updateProductStats(item.name, item.price, item.category);
     dbEvents.emit('items-changed', { action: 'create', item });
     return item;
   } catch (error) {
@@ -239,7 +256,7 @@ export async function updateItem(id: string, updates: Partial<Omit<Item, 'id'>>)
     
     // Update product stats if name or price changed
     if (updates.name !== undefined || updates.price !== undefined) {
-      await updateProductStats(updated.name, updated.price);
+      await updateProductStats(updated.name, updated.price, updated.category);
     }
     
     dbEvents.emit('items-changed', { action: 'update', item: updated });
@@ -279,22 +296,22 @@ export async function getProductStats(): Promise<ProductStat[]> {
   }
 }
 
-export async function updateProductStats(name: string, price: number): Promise<void> {
+export async function updateProductStats(name: string, price: number, category?: string): Promise<void> {
   try {
     const db = await getDB();
     const existing = await db.get('productStats', name);
     
-    const updated: ProductStat = existing 
-      ? {
-          name,
-          usedCount: existing.usedCount + 1,
-          totalSpend: existing.totalSpend + price,
-        }
-      : {
-          name,
-          usedCount: 1,
-          totalSpend: price,
-        };
+    const newUsedCount = existing ? existing.usedCount + 1 : 1;
+    const newTotalSpend = existing ? existing.totalSpend + price : price;
+    
+    const updated: ProductStat = {
+      name,
+      usedCount: newUsedCount,
+      totalSpend: newTotalSpend,
+      lastUsed: new Date(),
+      averagePrice: newTotalSpend / newUsedCount,
+      category: category || existing?.category,
+    };
 
     await db.put('productStats', updated);
   } catch (error) {
@@ -436,4 +453,184 @@ function getItemsFromLocalStorage(listId: string): Item[] {
   } catch {
     return [];
   }
+}
+
+// Budget operations
+export async function getBudgets(): Promise<Budget[]> {
+  try {
+    const db = await getDB();
+    const budgets = await db.getAll('budgets');
+    return budgets.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+  } catch (error) {
+    console.error('Error getting budgets:', error);
+    return [];
+  }
+}
+
+export async function createBudget(budgetData: Omit<Budget, 'id' | 'createdAt' | 'updatedAt'>): Promise<Budget> {
+  const budget: Budget = {
+    ...budgetData,
+    id: uuid(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
+  try {
+    const db = await getDB();
+    await db.put('budgets', budget);
+    dbEvents.emit('budgets-changed', { action: 'create', budget });
+    return budget;
+  } catch (error) {
+    console.error('Error creating budget:', error);
+    await queueOfflineOperation('createBudget', budget);
+    return budget;
+  }
+}
+
+export async function updateBudget(id: string, updates: Partial<Omit<Budget, 'id' | 'createdAt'>>): Promise<Budget | null> {
+  try {
+    const db = await getDB();
+    const existing = await db.get('budgets', id);
+    if (!existing) return null;
+
+    const updated: Budget = {
+      ...existing,
+      ...updates,
+      updatedAt: new Date(),
+    };
+
+    await db.put('budgets', updated);
+    dbEvents.emit('budgets-changed', { action: 'update', budget: updated });
+    return updated;
+  } catch (error) {
+    console.error('Error updating budget:', error);
+    await queueOfflineOperation('updateBudget', { id, updates });
+    return null;
+  }
+}
+
+export async function deleteBudget(id: string): Promise<boolean> {
+  try {
+    const db = await getDB();
+    const existing = await db.get('budgets', id);
+    if (!existing) return false;
+
+    await db.delete('budgets', id);
+    dbEvents.emit('budgets-changed', { action: 'delete', budget: existing });
+    return true;
+  } catch (error) {
+    console.error('Error deleting budget:', error);
+    await queueOfflineOperation('deleteBudget', { id });
+    return false;
+  }
+}
+
+// Analytics operations
+export async function getShoppingAnalytics(): Promise<ShoppingAnalytics> {
+  try {
+    const [lists, allItems, productStats] = await Promise.all([
+      getLists(),
+      getAllItems(),
+      getProductStats()
+    ]);
+
+    const purchasedItems = allItems.filter(item => item.purchased);
+    
+    // Calculate basic stats
+    const totalSpent = purchasedItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    const totalItems = purchasedItems.length;
+    const totalLists = lists.length;
+    const averageListValue = totalLists > 0 ? totalSpent / totalLists : 0;
+
+    // Calculate top categories
+    const categoryStats = new Map<string, { count: number; totalSpent: number }>();
+    purchasedItems.forEach(item => {
+      const category = item.category || 'Other';
+      const current = categoryStats.get(category) || { count: 0, totalSpent: 0 };
+      categoryStats.set(category, {
+        count: current.count + item.qty,
+        totalSpent: current.totalSpent + (item.price * item.qty)
+      });
+    });
+
+    const topCategories = Array.from(categoryStats.entries())
+      .map(([category, stats]) => ({ category, ...stats }))
+      .sort((a, b) => b.totalSpent - a.totalSpent)
+      .slice(0, 5);
+
+    // Calculate monthly spending
+    const monthlySpending = calculateMonthlySpending(purchasedItems);
+
+    // Get frequent items (top 10)
+    const frequentItems = productStats
+      .sort((a, b) => b.usedCount - a.usedCount)
+      .slice(0, 10)
+      .map(stat => ({
+        name: stat.name,
+        count: stat.usedCount,
+        totalSpent: stat.totalSpend
+      }));
+
+    return {
+      totalSpent,
+      totalItems,
+      totalLists,
+      averageListValue,
+      topCategories,
+      monthlySpending,
+      frequentItems,
+    };
+  } catch (error) {
+    console.error('Error getting shopping analytics:', error);
+    return {
+      totalSpent: 0,
+      totalItems: 0,
+      totalLists: 0,
+      averageListValue: 0,
+      topCategories: [],
+      monthlySpending: [],
+      frequentItems: [],
+    };
+  }
+}
+
+// Helper function to get all items across all lists
+async function getAllItems(): Promise<Item[]> {
+  try {
+    const db = await getDB();
+    return await db.getAll('items');
+  } catch (error) {
+    console.error('Error getting all items:', error);
+    return [];
+  }
+}
+
+// Calculate monthly spending from purchased items
+function calculateMonthlySpending(purchasedItems: Item[]): Array<{ month: string; amount: number }> {
+  const monthlyTotals = new Map<string, number>();
+  
+  purchasedItems.forEach(item => {
+    const date = item.purchasedAt || item.createdAt || new Date();
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    const amount = item.price * item.qty;
+    
+    monthlyTotals.set(monthKey, (monthlyTotals.get(monthKey) || 0) + amount);
+  });
+  
+  // Get last 12 months
+  const result: Array<{ month: string; amount: number }> = [];
+  const now = new Date();
+  
+  for (let i = 11; i >= 0; i--) {
+    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    const monthName = date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+    
+    result.push({
+      month: monthName,
+      amount: monthlyTotals.get(monthKey) || 0
+    });
+  }
+  
+  return result;
 }

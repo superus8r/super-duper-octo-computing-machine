@@ -17,7 +17,11 @@ export function ItemCard({ item, currency, onEdit }: ItemCardProps) {
     
     setIsUpdating(true);
     try {
-      await updateItem(item.id, { purchased: !item.purchased });
+      const newPurchased = !item.purchased;
+      await updateItem(item.id, { 
+        purchased: newPurchased,
+        purchasedAt: newPurchased ? new Date() : undefined
+      });
     } catch (error) {
       console.error('Error toggling item:', error);
     } finally {
@@ -61,7 +65,12 @@ export function ItemCard({ item, currency, onEdit }: ItemCardProps) {
         </div>
         
         <div className="item-details" onClick={() => onEdit(item)}>
-          <div className="item-name">{item.name}</div>
+          <div className="item-name-section">
+            <div className="item-name">{item.name}</div>
+            {item.category && (
+              <span className="item-category">{item.category}</span>
+            )}
+          </div>
           <div className="item-meta">
             {item.qty > 1 && <span className="item-qty">{item.qty}x</span>}
             {item.price > 0 && (
@@ -70,6 +79,9 @@ export function ItemCard({ item, currency, onEdit }: ItemCardProps) {
               </span>
             )}
           </div>
+          {item.notes && (
+            <div className="item-notes">{item.notes}</div>
+          )}
         </div>
 
         <div className="item-actions">

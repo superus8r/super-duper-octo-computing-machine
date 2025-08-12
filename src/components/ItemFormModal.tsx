@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ItemFormSchema, type ItemForm } from '../lib/types';
+import { ItemFormSchema, type ItemForm, ITEM_CATEGORIES } from '../lib/types';
 import { createItem, updateItem } from '../lib/db';
 import type { Item } from '../lib/types';
 
@@ -16,6 +16,8 @@ export function ItemFormModal({ listId, currency, editingItem, onClose, onSave }
     name: editingItem?.name || '',
     qty: editingItem?.qty || 1,
     price: editingItem?.price || 0,
+    category: editingItem?.category || '',
+    notes: editingItem?.notes || '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,6 +40,7 @@ export function ItemFormModal({ listId, currency, editingItem, onClose, onSave }
           ...validatedData,
           listId,
           purchased: false,
+          createdAt: new Date(),
         });
       }
       
@@ -120,6 +123,35 @@ export function ItemFormModal({ listId, currency, editingItem, onClose, onSave }
               />
               {errors.price && <div className="error-text">{errors.price}</div>}
             </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="item-category">Category</label>
+            <select
+              id="item-category"
+              value={form.category}
+              onChange={e => handleInputChange('category', e.target.value)}
+              className={errors.category ? 'error' : ''}
+            >
+              <option value="">Select category (optional)</option>
+              {ITEM_CATEGORIES.map(category => (
+                <option key={category} value={category}>{category}</option>
+              ))}
+            </select>
+            {errors.category && <div className="error-text">{errors.category}</div>}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="item-notes">Notes</label>
+            <textarea
+              id="item-notes"
+              value={form.notes}
+              onChange={e => handleInputChange('notes', e.target.value)}
+              placeholder="Additional notes (optional)"
+              rows={2}
+              className={errors.notes ? 'error' : ''}
+            />
+            {errors.notes && <div className="error-text">{errors.notes}</div>}
           </div>
 
           <div className="form-actions">

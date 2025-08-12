@@ -44,6 +44,7 @@ export function NewListPage() {
               qty: 1,
               price: 0,
               purchased: false,
+              createdAt: new Date(),
             })
           )
         );
