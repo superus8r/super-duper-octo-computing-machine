@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TopBar } from '../../components/TopBar';
-import { createList } from '../../lib/db';
+import { createList, createItem } from '../../lib/db';
 import { CreateListFormSchema } from '../../lib/types';
 import type { CreateListForm } from '../../lib/types';
 
@@ -27,6 +27,27 @@ export function NewListPage() {
         name: validatedData.name,
         currency: validatedData.currency,
       });
+      
+      // Process initial items if provided
+      if (validatedData.initialItems && validatedData.initialItems.trim()) {
+        const items = validatedData.initialItems
+          .split(',')
+          .map(item => item.trim())
+          .filter(item => item.length > 0);
+        
+        // Create items in parallel
+        await Promise.all(
+          items.map(itemName => 
+            createItem({
+              listId: newList.id,
+              name: itemName,
+              qty: 1,
+              price: 0,
+              purchased: false,
+            })
+          )
+        );
+      }
       
       navigate(`/list/${newList.id}`);
     } catch (error: unknown) {
