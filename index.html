@@ -2,12 +2,48 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    
+    <!-- Standard meta tags -->
+    <link rel="icon" type="image/png" href="/icons/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React + TS</title>
+    <meta name="description" content="A progressive web app for managing shopping lists" />
+    
+    <!-- PWA manifest -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    
+    <!-- Theme colors (will be updated dynamically by theme system) -->
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)" />
+    
+    <!-- Apple specific PWA meta tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Shopping List" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    
+    <!-- Microsoft specific -->
+    <meta name="msapplication-TileColor" content="#007bff" />
+    <meta name="msapplication-config" content="/browserconfig.xml" />
+    
+    <title>Shopping List PWA</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+              console.log('Service Worker registered successfully:', registration.scope);
+            })
+            .catch(error => {
+              console.log('Service Worker registration failed:', error);
+            });
+        });
+      }
+    </script>
   </body>
 </html>
