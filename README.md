@@ -1,6 +1,12 @@
 # Shopping List PWA
+⚠️ Test-only project. For demonstration and educational use. Not intended for production.
 
-A production-ready, mobile-first Progressive Web App for managing shopping lists. Built with Vite + React + TypeScript and deployable to GitHub Pages.
+
+A mobile-first Progressive Web App for managing shopping lists. Built with Vite + React + TypeScript and deployable to GitHub Pages.
+
+## ⚖️ Disclaimer
+
+This repository is provided for testing and demonstration purposes only and does not constitute legal advice. It is provided "as is" without warranty of any kind. Use at your own risk. By using or distributing this code, you agree that the authors and contributors are not liable for any claims, damages, or other liabilities arising from its use. Consult a qualified attorney for guidance on legal compliance.
 
 ## ✨ Features
 
