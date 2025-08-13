@@ -119,12 +119,19 @@ pnpm test
 
 ### GitHub Pages
 
-The app automatically deploys to GitHub Pages on push to main branch:
+The app automatically deploys to GitHub Pages on push to main branch using GitHub Actions:
 
-1. Enable GitHub Pages in repository settings
-2. Push to main branch
-3. GitHub Actions will build and deploy automatically
-4. Access at `https://username.github.io/repository-name`
+- Pages must be enabled via Settings → Pages → Source: GitHub Actions
+- On push to main, the site is built and deployed to: https://superus8r.github.io/super-duper-octo-computing-machine/
+- SPA fallback handled via 404.html copy for deep-link support
+- Local dev unchanged: `pnpm dev`
+- Uses `--base` flag in workflow to support project pages deployment
+
+### Custom Domain Support
+
+To use a custom domain:
+1. Create `public/CNAME` file with your domain
+2. Remove the base override in the workflow (or set `--base="/"`) because a custom domain is served at the root
 
 ### Manual Deployment
 
