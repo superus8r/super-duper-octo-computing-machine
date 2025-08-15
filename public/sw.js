@@ -5,13 +5,12 @@ const DYNAMIC_CACHE_NAME = 'shopping-list-dynamic-v1.1';
 
 // Static assets to cache during install
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.webmanifest',
-  '/icons/icon-192.png',
-  '/icons/icon-256.png', 
-  '/icons/icon-512.png',
-  '/icons/icon-maskable.png'
+  'index.html',
+  'manifest.webmanifest',
+  'icons/icon-192.png',
+  'icons/icon-256.png', 
+  'icons/icon-512.png',
+  'icons/icon-maskable.png'
 ];
 
 // Cache strategies
@@ -156,6 +155,7 @@ async function networkFirst(request, cacheName) {
 // Network First with fast cache fallback for app shell
 async function networkFirstWithFastFallback(request) {
   const cache = await caches.open(STATIC_CACHE_NAME);
+  const offlineFallbackUrl = new URL('index.html', self.registration.scope).href;
   
   try {
     // Try network with short timeout
@@ -175,7 +175,7 @@ async function networkFirstWithFastFallback(request) {
     
   } catch (error) {
     // Fast fallback to cache
-    const cached = await cache.match(request) || await cache.match('/');
+  const cached = await cache.match(request) || await cache.match(offlineFallbackUrl);
     if (cached) {
       return cached;
     }
@@ -208,7 +208,8 @@ async function staleWhileRevalidate(request, cacheName) {
 // Get offline fallback page
 async function getOfflineFallback() {
   const cache = await caches.open(STATIC_CACHE_NAME);
-  return await cache.match('/') || new Response(
+  const offlineFallbackUrl = new URL('index.html', self.registration.scope).href;
+  return await cache.match(offlineFallbackUrl) || new Response(
     '<!DOCTYPE html><html><head><title>Offline</title></head><body><h1>You are offline</h1><p>Please check your internet connection.</p></body></html>',
     { headers: { 'Content-Type': 'text/html' } }
   );

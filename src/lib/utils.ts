@@ -126,7 +126,7 @@ export class NetworkMonitor {
     }
     
     try {
-      const response = await fetch('/manifest.webmanifest', {
+  const response = await fetch('manifest.webmanifest', {
         method: 'HEAD',
         cache: 'no-cache'
       });
@@ -147,7 +147,15 @@ export class ServiceWorkerManager {
   static async register(): Promise<ServiceWorkerRegistration | null> {
     if ('serviceWorker' in navigator) {
       try {
-        const registration = await navigator.serviceWorker.register('/sw.js');
+        // Compute base-aware SW path for GitHub Pages (project pages)
+        // If the app is served from a subpath (e.g., /super-duper-octo-computing-machine/),
+        // use that as the scope and sw path. Fallback to root for local dev.
+        const { pathname } = window.location;
+        const baseMatch = pathname.match(/^\/(.+?)\//);
+        const base = baseMatch ? `/${baseMatch[1]}/` : '/';
+        const swPath = `${base}sw.js`;
+
+        const registration = await navigator.serviceWorker.register(swPath, { scope: base });
         this.registration = registration;
         
         console.log('Service Worker registered:', registration);
