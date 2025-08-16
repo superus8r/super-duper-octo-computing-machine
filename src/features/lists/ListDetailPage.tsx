@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { TopBar } from '../../components/TopBar';
+import { DisclaimerBanner } from '../../components/DisclaimerBanner';
 import { ItemCard } from '../../components/ItemCard';
 import { ItemFormModal } from '../../components/ItemFormModal';
 import { ListSummary } from '../../components/ListSummary';
@@ -101,13 +102,15 @@ export function ListDetailPage() {
   return (
     <>
       <TopBar title={list.name} />
-      <div className="container">
+      <div className="page-content">
+        <DisclaimerBanner />
+
         {/* List Summary */}
         <ListSummary items={allItems} currency={list.currency} />
 
         {/* Filter Tabs */}
         {allItems.length > 0 && (
-          <div className="filter-tabs" role="tablist">
+          <div className="filter-tabs sticky-tabs" role="tablist">
             <button
               type="button"
               className={`filter-tab ${filter === 'all' ? 'active' : ''}`}

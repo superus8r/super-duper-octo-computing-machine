@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { TopBar } from '../../components/TopBar';
+import { DisclaimerBanner } from '../../components/DisclaimerBanner';
 import { useLiveQuery } from '../../hooks/useLiveQuery';
 import { getLists, getSettings, updateSettings } from '../../lib/db';
 import { setTheme } from '../../lib/theme';
@@ -53,7 +54,8 @@ export function ProfilePage() {
     return (
       <>
         <TopBar title="Profile" />
-        <div className="container py-4">
+        <div className="page-content">
+          <DisclaimerBanner />
           <div className="text-center">Loading...</div>
         </div>
       </>
@@ -63,7 +65,8 @@ export function ProfilePage() {
   return (
     <>
       <TopBar title="Profile" />
-      <div className="container py-4">
+      <div className="page-content">
+        <DisclaimerBanner />
         <div className="space-y-6">
           
           {/* Statistics */}
@@ -170,7 +173,7 @@ export function ProfilePage() {
             </div>
           </div>
 
-          {/* App Info */}
+          {/* About */}
           <div className="card">
             <h2 className="text-xl font-semibold mb-4">About</h2>
             <div className="space-y-2 text-sm text-fg-muted">
@@ -187,6 +190,16 @@ export function ProfilePage() {
                 <span>IndexedDB + LocalStorage</span>
               </div>
             </div>
+          </div>
+
+          {/* Legal */}
+          <div className="card">
+            <h2 className="text-xl font-semibold mb-2">Legal</h2>
+            <p className="text-sm text-fg-muted">
+              Experimental app provided "as is," without warranties or guarantees of any kind—express or implied.
+              You are solely responsible for any use and data entered. The author assumes no liability for losses or
+              damages arising from use. Do not use for critical or safety-related purposes.
+            </p>
           </div>
 
         </div>
