@@ -23,7 +23,7 @@ export function ListsPage() {
     return (
       <>
         <TopBar title="Shopping Lists" />
-        <div className="container py-4">
+        <div className="container py-4 max-w-md mx-auto">
           <div className="text-center">Loading...</div>
         </div>
       </>
@@ -34,13 +34,13 @@ export function ListsPage() {
     return (
       <>
         <TopBar title="Shopping Lists" />
-        <div className="container py-4">
+        <div className="container py-4 max-w-md mx-auto">
           <EmptyState
             icon={<ListIcon />}
             title="No shopping lists yet"
-            description="Create your first shopping list to get started organizing your groceries and shopping items."
+            description="Start your first shopping list to stay organized and make grocery trips faster."
             action={{
-              label: "Create List",
+              label: "Create your first list",
               onClick: () => navigate('/new')
             }}
           />
@@ -52,7 +52,7 @@ export function ListsPage() {
   return (
     <>
       <TopBar title="Shopping Lists" />
-      <div className="container py-4">
+      <div className="container py-4 max-w-md mx-auto">
         <div className="grid gap-4">
           {lists.map(list => (
             <div key={list.id} className="card cursor-pointer" onClick={() => navigate(`/list/${list.id}`)}>
