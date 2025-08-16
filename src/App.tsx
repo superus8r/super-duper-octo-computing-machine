@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import type React from 'react';
 import { Outlet } from 'react-router-dom';
 import { NavBar } from './components/NavBar';
 import { OfflineIndicator } from './components/OfflineIndicator';
@@ -36,7 +37,7 @@ export function App() {
   };
 
   return (
-    <div className="app-layout">
+    <div className="app-layout" style={{ '--nav-height': '72px' } as React.CSSProperties}>
       <OfflineIndicator />
       <main className="main-content">
         <Outlet />
