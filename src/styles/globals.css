@@ -2,6 +2,7 @@
 
 /* Import component styles */
 @import url('./list-detail.css');
+@import url('./layout.css');
 
 :root {
   /* Light theme colors */

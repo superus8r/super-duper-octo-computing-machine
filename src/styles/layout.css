@@ -1,0 +1,58 @@
+/* Layout helpers and small UX improvements */
+
+:root {
+  /* Fallbacks; align with your TopBar/NavBar sizing */
+  --topbar-height: 56px;
+  --nav-height: 72px;
+}
+
+/* Ensure content isn't obscured by the fixed bottom nav */
+body {
+  padding-bottom: calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));
+}
+
+/* Standardized page content wrapper for spacing and width */
+.page-content {
+  padding: var(--space-lg) var(--space-md) calc(var(--nav-height) + var(--space-lg));
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+/* Sticky tabs that remain under the TopBar when scrolling */
+.sticky-tabs {
+  position: sticky;
+  top: var(--topbar-height);
+  z-index: 9;
+  background: var(--bg-surface);
+}
+
+/* Dismissible disclaimer banner */
+.disclaimer-banner {
+  border: 1px solid var(--border-color);
+  background: color-mix(in srgb, var(--warning) 10%, transparent);
+  color: var(--fg);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  margin-bottom: var(--space-md);
+  display: flex;
+  align-items: start;
+  gap: var(--space-md);
+}
+
+.disclaimer-banner .disclaimer-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.disclaimer-banner .disclaimer-content {
+  flex: 1;
+}
+
+.disclaimer-banner .disclaimer-actions button {
+  background: var(--bg-muted);
+  color: var(--fg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+}
