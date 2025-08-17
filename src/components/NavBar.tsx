@@ -34,36 +34,26 @@ const navItems = [
 ];
 
 export function NavBar() {
-  // Stable nav height; use CSS var for layout spacing
-  const navHeight = '72px';
-
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-20"
+      className="fixed inset-x-0 bottom-0 z-50"
       role="navigation"
       aria-label="Bottom navigation"
-      style={{ '--nav-height': navHeight } as React.CSSProperties}
+      style={{ '--bottom-nav-height': '72px' } as React.CSSProperties}
     >
-      <div
-        className="container"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
-      >
-        <div className="mx-auto max-w-md mb-2">
-          <div className="bg-surface border border-border rounded-2xl shadow-md">
+      <div className="container-page" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+        <div className="mx-auto mb-2 max-w-md">
+          <div className="rounded-2xl border border-slate-200 bg-white/95 shadow-card backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:border-neutral-800 dark:bg-neutral-900/80">
             <ul className="flex items-center justify-around py-2">
               {navItems.map(({ path, label, icon: Icon }) => (
                 <li key={path}>
                   <NavLink
                     to={path}
-                    className={({ isActive }) => `
-                      flex flex-col items-center justify-center px-4 py-2 rounded-md transition-colors
-                      ${isActive ? 'text-primary' : 'text-fg-muted hover:text-fg'}
-                    `}
+                    className={({ isActive }) => `flex min-w-16 min-h-11 flex-col items-center justify-center rounded-md px-4 py-2 text-xs font-medium transition-colors ${isActive ? 'text-blue-600' : 'text-slate-500 hover:text-slate-700 dark:text-neutral-400 dark:hover:text-neutral-200'}`}
                     aria-label={label}
-                    style={{ minWidth: 64, minHeight: 44 }}
                   >
                     <Icon />
-                    <span className="text-xs font-medium mt-1">{label}</span>
+                    <span className="mt-1">{label}</span>
                   </NavLink>
                 </li>
               ))}

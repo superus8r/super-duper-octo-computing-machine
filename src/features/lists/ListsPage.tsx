@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
 import { TopBar } from '../../components/TopBar';
-import { DisclaimerBanner } from '../../components/DisclaimerBanner';
 import { useLiveQuery } from '../../hooks/useLiveQuery';
 import { getLists } from '../../lib/db';
 
@@ -11,16 +10,12 @@ export function ListsPage() {
   return (
     <>
       <TopBar title="Your Lists" />
-      <div className="page-content">
-        <DisclaimerBanner />
-
+      <main className="container-page py-4">
         {!lists || lists.length === 0 ? (
-          <div className="card text-center">
-            <div className="text-3xl mb-2">📝</div>
-            <h2 className="text-xl font-semibold mb-1">No lists yet</h2>
-            <p className="text-sm text-fg-muted mb-3">
-              Create your first shopping list to get started.
-            </p>
+          <div className="card p-6 text-center">
+            <div className="mb-2 text-3xl">📝</div>
+            <h2 className="mb-1 text-xl font-semibold">No lists yet</h2>
+            <p className="muted mb-3">Create your first shopping list to get started.</p>
             <button
               type="button"
               className="btn primary"
@@ -32,11 +27,11 @@ export function ListsPage() {
           </div>
         ) : (
           <div className="grid gap-4">
-            <div className="text-sm text-fg-muted">Recent Lists</div>
+            <div className="muted">Recent Lists</div>
             {lists.map(list => (
               <div
                 key={list.id}
-                className="card cursor-pointer"
+                className="card cursor-pointer p-4"
                 onClick={() => navigate(`/list/${list.id}`)}
                 role="button"
                 tabIndex={0}
@@ -46,17 +41,15 @@ export function ListsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-semibold">{list.name}</h3>
-                    <p className="text-sm text-fg-muted">
-                      Created {list.createdAt.toLocaleDateString()}
-                    </p>
+                    <p className="muted">Created {list.createdAt.toLocaleDateString()}</p>
                   </div>
-                  <div className="text-primary" aria-hidden>→</div>
+                  <div className="text-blue-600" aria-hidden>→</div>
                 </div>
               </div>
             ))}
           </div>
         )}
-      </div>
+      </main>
     </>
   );
 }
