@@ -3,12 +3,21 @@
   <head>
     <meta charset="utf-8" />
     <title>Redirecting…</title>
-    <meta http-equiv="refresh" content="0; url=/super-duper-octo-computing-machine/" />
+    <!-- Use a relative redirect to land on the app's hash route under any project pages base -->
+    <meta http-equiv="refresh" content="0; url=./#/" />
   </head>
   <body>
     Redirecting…
     <script>
-      window.location.replace('/super-duper-octo-computing-machine/');
+      // Fallback for browsers ignoring meta refresh
+      (function() {
+        try {
+          // Use relative path so it works for forks and renames
+          window.location.replace('./#/');
+        } catch (_) {
+          window.location.href = './#/';
+        }
+      })();
     </script>
   </body>
 </html>
