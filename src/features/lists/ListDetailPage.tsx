@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { Tab } from '@headlessui/react';
 import { TopBar } from '../../components/TopBar';
-import { DisclaimerBanner } from '../../components/DisclaimerBanner';
 import { ItemCard } from '../../components/ItemCard';
 import { ItemFormModal } from '../../components/ItemFormModal';
 import { ListSummary } from '../../components/ListSummary';
@@ -35,9 +35,9 @@ export function ListDetailPage() {
     return (
       <>
         <TopBar title="Loading..." />
-        <div className="container py-4">
+        <main className="container-page py-4">
           <div className="text-center">Loading list...</div>
-        </div>
+        </main>
       </>
     );
   }
@@ -46,11 +46,11 @@ export function ListDetailPage() {
     return (
       <>
         <TopBar title="List Not Found" />
-        <div className="container py-4">
+        <main className="container-page py-4">
           <div className="text-center">
-            <p className="text-fg-muted">The requested list could not be found.</p>
+            <p className="muted">The requested list could not be found.</p>
           </div>
-        </div>
+        </main>
       </>
     );
   }
@@ -102,98 +102,132 @@ export function ListDetailPage() {
   return (
     <>
       <TopBar title={list.name} />
-      <div className="page-content">
-        <DisclaimerBanner />
-
+      <main className="container-page py-4">
         {/* List Summary */}
         <ListSummary items={allItems} currency={list.currency} />
 
-        {/* Filter Tabs */}
+        {/* Filter Tabs with Headless UI */}
         {allItems.length > 0 && (
-          <div className="filter-tabs sticky-tabs" role="tablist">
-            <button
-              type="button"
-              className={`filter-tab ${filter === 'all' ? 'active' : ''}`}
-              onClick={() => setFilter('all')}
-              role="tab"
-              aria-selected={filter === 'all'}
+          <Tab.Group
+            selectedIndex={filter === 'all' ? 0 : filter === 'remaining' ? 1 : 2}
+            onChange={(idx) => setFilter(idx === 0 ? 'all' : idx === 1 ? 'remaining' : 'purchased')}
+          >
+            <Tab.List className="sticky top-14 z-30 mb-4 flex gap-2 rounded-xl border border-slate-200 bg-white p-1 dark:border-neutral-800 dark:bg-neutral-900">
+              {[`All (${allItems.length})`, `Remaining (${remainingCount})`, `Purchased (${purchasedCount})`].map((label) => (
+                <Tab
+                  key={label}
+                  className={({ selected }) => `flex-1 rounded-lg px-3 py-2 text-sm font-medium outline-none transition ${selected ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800'}`}
+                >
+                  {label}
+                </Tab>
+              ))}
+            </Tab.List>
+            <Tab.Panels>
+              <Tab.Panel>
+                {/* Items List (all) */}
+                <div className="space-y-3">
+                  {sortedItems.length > 0 ? (
+                    sortedItems.map(item => (
+                      <ItemCard
+                        key={item.id}
+                        item={item}
+                        currency={list.currency}
+                        onEdit={handleEditItem}
+                      />
+                    ))
+                  ) : (
+                    <div className="card p-6 text-center">
+                      <div className="mb-2 text-3xl">🛒</div>
+                      <h3 className="mb-1 text-lg font-semibold">No items yet</h3>
+                      <p className="muted mb-3">Add items to your shopping list to get started.</p>
+                      <button 
+                        type="button" 
+                        className="btn primary"
+                        onClick={handleAddItem}
+                      >
+                        Add First Item
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </Tab.Panel>
+              <Tab.Panel>
+                {/* Items List (remaining) */}
+                <div className="space-y-3">
+                  {sortedItems.length > 0 ? (
+                    sortedItems.map(item => (
+                      <ItemCard
+                        key={item.id}
+                        item={item}
+                        currency={list.currency}
+                        onEdit={handleEditItem}
+                      />
+                    ))
+                  ) : (
+                    <div className="card p-6 text-center">
+                      <div className="mb-2 text-3xl">✅</div>
+                      <h3 className="mb-1 text-lg font-semibold">All items completed!</h3>
+                      <p className="muted">Great job finishing your shopping list!</p>
+                    </div>
+                  )}
+                </div>
+              </Tab.Panel>
+              <Tab.Panel>
+                {/* Items List (purchased) */}
+                <div className="space-y-3">
+                  {sortedItems.length > 0 ? (
+                    sortedItems.map(item => (
+                      <ItemCard
+                        key={item.id}
+                        item={item}
+                        currency={list.currency}
+                        onEdit={handleEditItem}
+                      />
+                    ))
+                  ) : (
+                    <div className="card p-6 text-center">
+                      <div className="mb-2 text-3xl">📝</div>
+                      <h3 className="mb-1 text-lg font-semibold">Nothing purchased yet</h3>
+                      <p className="muted">Items you purchase will appear here.</p>
+                    </div>
+                  )}
+                </div>
+              </Tab.Panel>
+            </Tab.Panels>
+          </Tab.Group>
+        )}
+
+        {/* Empty state when no items at all */}
+        {allItems.length === 0 && (
+          <div className="card p-6 text-center">
+            <div className="mb-2 text-3xl">🛒</div>
+            <h3 className="mb-1 text-lg font-semibold">No items yet</h3>
+            <p className="muted mb-3">Add items to your shopping list to get started.</p>
+            <button 
+              type="button" 
+              className="btn primary"
+              onClick={handleAddItem}
             >
-              All ({allItems.length})
-            </button>
-            <button
-              type="button"
-              className={`filter-tab ${filter === 'remaining' ? 'active' : ''}`}
-              onClick={() => setFilter('remaining')}
-              role="tab"
-              aria-selected={filter === 'remaining'}
-            >
-              Remaining ({remainingCount})
-            </button>
-            <button
-              type="button"
-              className={`filter-tab ${filter === 'purchased' ? 'active' : ''}`}
-              onClick={() => setFilter('purchased')}
-              role="tab"
-              aria-selected={filter === 'purchased'}
-            >
-              Purchased ({purchasedCount})
+              Add First Item
             </button>
           </div>
         )}
 
-        {/* Items List */}
-        <div className="items-section">
-          {sortedItems.length > 0 ? (
-            <div className="items-list" role="list">
-              {sortedItems.map(item => (
-                <ItemCard
-                  key={item.id}
-                  item={item}
-                  currency={list.currency}
-                  onEdit={handleEditItem}
-                />
-              ))}
-            </div>
-          ) : allItems.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-icon">🛒</div>
-              <h3>No items yet</h3>
-              <p>Add items to your shopping list to get started.</p>
-              <button 
-                type="button" 
-                className="btn primary"
-                onClick={handleAddItem}
-              >
-                Add First Item
-              </button>
-            </div>
-          ) : (
-            <div className="empty-state">
-              <div className="empty-icon">
-                {filter === 'purchased' ? '✅' : '📝'}
-              </div>
-              <h3>
-                {filter === 'purchased' ? 'Nothing purchased yet' : 'All items completed!'}
-              </h3>
-              <p>
-                {filter === 'purchased' 
-                  ? 'Items you purchase will appear here.' 
-                  : 'Great job finishing your shopping list!'}
-              </p>
-            </div>
-          )}
-        </div>
-
         {/* Add Item FAB */}
-        <button
-          type="button"
-          className="fab"
-          onClick={handleAddItem}
-          aria-label="Add new item"
-        >
-          +
-        </button>
-      </div>
+        {allItems.length > 0 && (
+          <button
+            type="button"
+            className="fixed bottom-20 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg transition-colors hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+            onClick={handleAddItem}
+            aria-label="Add new item"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
+        )}
+      </main>
 
       {/* Item Form Modal */}
       {showItemForm && (
